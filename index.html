@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Asociación de Palabras</title>
+  <style>
+    body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f4f4f9; margin: 0; }
+    .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); max-width: 500px; width: 100%; text-align: center; }
+    .hidden { display: none; }
+    input, select, button { width: 100%; padding: 10px; margin: 10px 0; border-radius: 4px; border: 1px solid #ccc; box-sizing: border-box; }
+    button { background-color: #0056b3; color: white; cursor: pointer; border: none; font-size: 16px; }
+    button:hover { background-color: #004494; }
+    #word-display { font-size: 32px; font-weight: bold; margin: 20px 0; color: #333; }
+  </style>
+</head>
+<body>
+
+<div id="intro-screen" class="container">
+  <h2>Estudio de Asociación Libre</h2>
+  <p>Escribe la primera palabra que te venga a la mente al ver cada concepto. Tu participación es voluntaria y anónima.</p>
+  
+  <select id="edad" required>
+    <option value="">¿Eres mayor de edad?</option>
+    <option value="no">No (Menor de 18)</option>
+    <option value="18-21">Sí (18-21 años)</option>
+    <option value="22-25">Sí (22-25 años)</option>
+    <option value="26+">Sí (26+ años)</option>
+  </select>
+
+  <select id="sexo" required>
+    <option value="">Sexo</option>
+    <option value="Femenino">Femenino</option>
+    <option value="Masculino">Masculino</option>
+    <option value="Otro">Otro</option>
+  </select>
+
+  <select id="escolaridad" required>
+    <option value="">Escolaridad</option>
+    <option value="Bachillerato">Bachillerato</option>
+    <option value="Licenciatura">Licenciatura</option>
+    <option value="Posgrado">Posgrado</option>
+  </select>
+
+  <button onclick="iniciarExperimento()">Comenzar</button>
+</div>
+
+<div id="experiment-screen" class="container hidden">
+  <div id="word-display"></div>
+  <input type="text" id="response-input" placeholder="Tu respuesta..." autocomplete="off">
+  <button onclick="registrarRespuesta()">Siguiente</button>
+  <p><small>Progreso: <span id="progress"></span>/60</small></p>
+</div>
+
+<div id="end-screen" class="container hidden">
+  <h2>¡Gracias por participar!</h2>
+  <p>Tus respuestas han sido registradas exitosamente.</p>
+</div>
+
+<script>
+  // Reemplaza con la URL de tu Google Apps Script
+  const URL_APPS_SCRIPT = "TU_URL_DE_APPS_SCRIPT_AQUI"; 
+  
+  const palabrasBase = [
+    "alumno", "profesor", "compañero", "coordinador", "rector", "becario", "tutor", "decano", "egresado", "tesista",
+    "foráneo", "director", "asesor", "prefecto", "salón", "biblioteca", "auditorio", "cafetería", "laboratorio", "campus",
+    "facultad", "pasillo", "rectoría", "gimnasio", "cancha", "cubículo", "jardín", "estacionamiento", "mochila", "cuaderno",
+    "libro", "plumón", "laptop", "proyector", "pizarra", "borrador", "credencial", "tesis", "apunte", "calculadora",
+    "escritorio", "pupitre", "fotocopia", "impresión", "examen", "calificación", "semestre", "horario", "inscripción", "graduación",
+    "exposición", "proyecto", "conferencia", "clase", "ensayo", "tarea", "promedio", "materia", "carrera", "licenciatura"
+  ];
+
+  let palabras = [];
+  let indiceActual = 0;
+  let tiempoInicio = 0;
+  let idParticipante = Date.now(); // Identificador único por sesión
+  let datosDemograficos = {};
+
+  function iniciarExperimento() {
+    const edad = document.getElementById("edad").value;
+    if (edad === "no") {
+      alert("Lo sentimos, debes ser mayor de edad para participar.");
+      return;
+    }
+    if (!edad || !document.getElementById("sexo").value || !document.getElementById("escolaridad").value) {
+      alert("Por favor completa todos los campos.");
+      return;
+    }
+
+    datosDemograficos = {
+      id: idParticipante,
+      edad: edad,
+      sexo: document.getElementById("sexo").value,
+      escolaridad: document.getElementById("escolaridad").value
+    };
+
+    // Aleatorizar palabras (Algoritmo Fisher-Yates)
+    palabras = palabrasBase.sort(() => Math.random() - 0.5);
+    
+    document.getElementById("intro-screen").classList.add("hidden");
+    document.getElementById("experiment-screen").classList.remove("hidden");
+    
+    mostrarPalabra();
+  }
+
+  function mostrarPalabra() {
+    if (indiceActual >= palabras.length) {
+      finalizarExperimento();
+      return;
+    }
+    
+    document.getElementById("word-display").innerText = palabras[indiceActual];
+    document.getElementById("progress").innerText = indiceActual + 1;
+    document.getElementById("response-input").value = "";
+    document.getElementById("response-input").focus();
+    
+    tiempoInicio = performance.now(); // Iniciar cronómetro de alta precisión
+  }
+
+  function registrarRespuesta() {
+    const respuesta = document.getElementById("response-input").value.trim();
+    if (respuesta === "") return;
+
+    const tiempoFin = performance.now();
+    const tiempoReaccion = Math.round(tiempoFin - tiempoInicio);
+
+    const registro = {
+      ...datosDemograficos,
+      estimulo: palabras[indiceActual],
+      respuesta: respuesta,
+      tiempo_ms: tiempoReaccion
+    };
+
+    // Enviar datos en segundo plano a Google Sheets
+    fetch(URL_APPS_SCRIPT, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(registro)
+    });
+
+    indiceActual++;
+    mostrarPalabra();
+  }
+
+  // Permitir enviar con la tecla Enter
+  document.getElementById("response-input").addEventListener("keypress", function(event) {
+    if (event.key === "Enter") {
+      registrarRespuesta();
+    }
+  });
+
+  function finalizarExperimento() {
+    document.getElementById("experiment-screen").classList.add("hidden");
+    document.getElementById("end-screen").classList.remove("hidden");
+  }
+</script>
+</body>
+</html>
