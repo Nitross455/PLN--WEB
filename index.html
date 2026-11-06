@@ -17,7 +17,11 @@
 
 <div id="intro-screen" class="container">
   <h2>Estudio de Asociación Libre</h2>
-  <p>A continuacion se presentaran una serie de palabras relacionadas con el tema Vida Universitaria, responde con la primera palabra en la que pienses al leer la palabra proporcionada. Tu participación es voluntaria y anónima.</p>
+  <p>A continuacion se presentaran una serie de palabras relacionadas con el tema Vida Universitaria, responde con la primera palabra en la que pienses al leer la palabra proporcionada. 
+    Tu participación es voluntaria y anónima.
+    <br>Si no se le ocurre ninguna palabra responda N
+    <br>Responda de manera natural sin utilizar herramientas de busqueda
+  </p>
   
   <select id="edad" required>
     <option value="">¿Eres mayor de edad?</option>
@@ -45,6 +49,9 @@
 </div>
 
 <div id="experiment-screen" class="container hidden">
+<div class="reminder">
+    Escribe la <strong>primera palabra</strong> que pienses al leer la siguiente palabra. Si no se te ocurre ninguna, escribe <strong>N</strong>.
+  </div>
   <div id="word-display"></div>
   <input type="text" id="response-input" placeholder="Tu respuesta..." autocomplete="off">
   <button onclick="registrarRespuesta()">Siguiente</button>
