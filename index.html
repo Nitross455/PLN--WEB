@@ -2,26 +2,24 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Asociación de Palabras</title>
+  <title>Descripciones de Vida Universitaria</title>
   <style>
-    body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f4f4f9; margin: 0; }
-    .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); max-width: 500px; width: 100%; text-align: center; }
+    body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; background-color: #f4f4f9; margin: 0; }
+    .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); max-width: 500px; width: 100%; text-align: center; box-sizing: border-box; }
     .hidden { display: none; }
-    input, select, button { width: 100%; padding: 10px; margin: 10px 0; border-radius: 4px; border: 1px solid #ccc; box-sizing: border-box; }
-    button { background-color: #0056b3; color: white; cursor: pointer; border: none; font-size: 16px; }
+    input, select, button, textarea { width: 100%; padding: 10px; margin: 10px 0; border-radius: 4px; border: 1px solid #ccc; box-sizing: border-box; font-family: Arial, sans-serif; }
+    textarea { resize: vertical; font-size: 14px; }
+    button { background-color: #0056b3; color: white; cursor: pointer; border: none; font-size: 16px; font-weight: bold; }
     button:hover { background-color: #004494; }
-    #word-display { font-size: 32px; font-weight: bold; margin: 20px 0; color: #333; }
+    #word-display { font-size: 32px; font-weight: bold; margin: 15px 0; color: #333; text-transform: capitalize; }
+    .reminder-box { background-color: #fff3cd; color: #856404; padding: 12px; border-radius: 5px; border: 1px solid #ffeeba; font-size: 14px; text-align: left; margin-bottom: 10px; }
   </style>
 </head>
 <body>
 
 <div id="intro-screen" class="container">
-  <h2>Estudio de Asociación Libre</h2>
-  <p>A continuacion se presentaran una serie de palabras relacionadas con el tema Vida Universitaria, responde con la primera palabra en la que pienses al leer la palabra proporcionada. 
-    Tu participación es voluntaria y anónima.
-    <br>Si no se le ocurre ninguna palabra responda N
-    <br>Responda de manera natural sin utilizar herramientas de busqueda
-  </p>
+  <h2>Estudio de Conceptos</h2>
+  <p>Tu tarea es redactar una descripción detallada para cada concepto (mínimo 5 palabras) <strong>SIN utilizar la palabra original ni sus derivados</strong>. Imagina que le explicas el concepto a alguien que nunca ha pisado una universidad.</p>
   
   <select id="edad" required>
     <option value="">¿Eres mayor de edad?</option>
@@ -49,37 +47,39 @@
 </div>
 
 <div id="experiment-screen" class="container hidden">
-<div class="reminder">
-    Escribe la <strong>primera palabra</strong> que pienses al leer el siguiente estímulo. Si no se te ocurre ninguna, escribe <strong>N</strong>.
+  <div class="reminder-box">
+    <strong>Regla estricta:</strong> Describe el concepto usando al menos 5 palabras, pero <u>no menciones</u> la palabra que está en letras grandes.
   </div>
+  
   <div id="word-display"></div>
-  <input type="text" id="response-input" placeholder="Tu respuesta..." autocomplete="off">
+  <textarea id="response-input" rows="4" placeholder="Ejemplo: Documento extenso de investigación que un alumno defiende al final de su carrera..." autocomplete="off"></textarea>
   <button onclick="registrarRespuesta()">Siguiente</button>
-  <p><small>Progreso: <span id="progress"></span>/60</small></p>
+  <p><small>Progreso: <span id="progress"></span>/30</small></p>
 </div>
 
 <div id="end-screen" class="container hidden">
-  <h2>¡Gracias por participar!</h2>
-  <p>Tus respuestas han sido registradas exitosamente.</p>
+  <h2>¡Gracias por tu participación!</h2>
+  <p>Tus descripciones han sido registradas exitosamente.</p>
 </div>
 
 <script>
-  // Reemplaza con la URL de tu Google Apps Script
+  // La misma URL de tu Apps Script actual. Los datos llegarán a tu Google Sheet.
   const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbzk_4jVED5J0YJr-774T9V-s0Nme2wWnX0XFwC1xzf72juFF5Hi8AmXGxhtF-Lbc9Up/exec"; 
   
+  // Los 30 conceptos con mayor fuerza de asociación de tus normas
   const palabrasBase = [
-    "alumno", "profesor", "compañero", "coordinador", "rector", "becario", "tutor", "decano", "egresado", "tesista",
-    "foráneo", "director", "asesor", "prefecto", "salón", "biblioteca", "auditorio", "cafetería", "laboratorio", "campus",
-    "facultad", "pasillo", "rectoría", "gimnasio", "cancha", "cubículo", "jardín", "estacionamiento", "mochila", "cuaderno",
-    "libro", "plumón", "laptop", "proyector", "pizarra", "borrador", "credencial", "tesis", "apunte", "calculadora",
-    "escritorio", "pupitre", "fotocopia", "impresión", "examen", "calificación", "semestre", "horario", "inscripción", "graduación",
-    "exposición", "proyecto", "conferencia", "clase", "ensayo", "tarea", "promedio", "materia", "carrera", "licenciatura"
+    "biblioteca", "compañero", "cafetería", "cancha", "profesor", 
+    "gimnasio", "estacionamiento", "credencial", "escritorio", "calculadora", 
+    "facultad", "laboratorio", "jardín", "salón", "becario", 
+    "auditorio", "laptop", "rector", "carrera", "campus", 
+    "borrador", "examen", "alumno", "horario", "plumón", 
+    "inscripción", "materia", "cuaderno", "apunte", "impresión"
   ];
 
   let palabras = [];
   let indiceActual = 0;
   let tiempoInicio = 0;
-  let idParticipante = Date.now(); // Identificador único por sesión
+  let idParticipante = Date.now(); 
   let datosDemograficos = {};
 
   function iniciarExperimento() {
@@ -100,7 +100,6 @@
       escolaridad: document.getElementById("escolaridad").value
     };
 
-    // Aleatorizar palabras (Algoritmo Fisher-Yates)
     palabras = palabrasBase.sort(() => Math.random() - 0.5);
     
     document.getElementById("intro-screen").classList.add("hidden");
@@ -120,12 +119,29 @@
     document.getElementById("response-input").value = "";
     document.getElementById("response-input").focus();
     
-    tiempoInicio = performance.now(); // Iniciar cronómetro de alta precisión
+    tiempoInicio = performance.now(); 
   }
 
   function registrarRespuesta() {
     const respuesta = document.getElementById("response-input").value.trim();
-    if (respuesta === "") return;
+    const palabraObjetivo = palabras[indiceActual].toLowerCase();
+    
+    // Validación 1: Evitar descripciones vacías o muy cortas
+    const numPalabras = respuesta.split(/\s+/).filter(word => word.length > 0).length;
+    if (numPalabras < 5) {
+      alert("Tu descripción es muy corta. Por favor, usa al menos 5 palabras para detallar el concepto.");
+      return;
+    }
+
+    // Validación 2: Regla Tabú (Asegurar que no usen el concepto original)
+    // Usamos una expresión regular para buscar la palabra exacta, ignorando mayúsculas y acentos básicos
+    const normalizeString = str => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    const regex = new RegExp(`\\b${normalizeString(palabraObjetivo)}\\b`, "i");
+    
+    if (regex.test(normalizeString(respuesta))) {
+      alert(`¡Cuidado! No puedes incluir la palabra "${palabras[indiceActual]}" en tu descripción. Intenta explicarlo con otros términos.`);
+      return;
+    }
 
     const tiempoFin = performance.now();
     const tiempoReaccion = Math.round(tiempoFin - tiempoInicio);
@@ -134,10 +150,9 @@
       ...datosDemograficos,
       estimulo: palabras[indiceActual],
       respuesta: respuesta,
-      tiempo_ms: tiempoReaccion
+      tiempo_ms: tiempoReaccion 
     };
 
-    // Enviar datos en segundo plano a Google Sheets
     fetch(URL_APPS_SCRIPT, {
       method: 'POST',
       mode: 'no-cors',
@@ -149,12 +164,8 @@
     mostrarPalabra();
   }
 
-  // Permitir enviar con la tecla Enter
-  document.getElementById("response-input").addEventListener("keypress", function(event) {
-    if (event.key === "Enter") {
-      registrarRespuesta();
-    }
-  });
+  // Se eliminó el evento "Enter" para permitir que los usuarios hagan saltos de línea en el textarea
+  // Solo se avanza haciendo clic en el botón "Siguiente".
 
   function finalizarExperimento() {
     document.getElementById("experiment-screen").classList.add("hidden");
